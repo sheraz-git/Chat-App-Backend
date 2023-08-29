@@ -21,6 +21,12 @@ const User = new mongoose.Schema({
     type: String,
     required: false,
   },
+  otp: {
+    type: String,
+  },
+  otp_expiry_time: {
+    type: Date,
+  },
 });
 
 User.pre("save", async function (next) {

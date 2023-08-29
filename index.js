@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
+const cors = require("cors");
 require("dotenv").config();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -8,6 +9,14 @@ const Port = process.env.PORT;
 const connectToMongo=require("./db/connectDb");
 const userRoutes=require("./routes/user.routes");
 connectToMongo();
+const corsOptions = {
+  origin: "*",
+  optionsSuccessStatus: 200,
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  preflightContinue: false,
+};
+
+app.use(cors(corsOptions));
 app.get("/", (req, res) => {
   return res.status(200).json({
     message: "ChatApp-Worked-Successfully",

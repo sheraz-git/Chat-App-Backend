@@ -1,5 +1,7 @@
 const User = require("../model/user.model");
 const { sign } = require("../middleware/Authentication");
+const otpGenerator = require("otp-generator");
+const nodemailer=require("nodemailer");
 exports.signUp = async (req, res) => {
   console.log("req.body", req.body);
   try {
@@ -15,7 +17,7 @@ exports.signUp = async (req, res) => {
     res.cookie("token", token, {
       maxAge: 2592000, // 30 days
     });
-    res.status(200).json({ data: newUser,token });
+    res.status(200).json({ data: newUser, token });
   } catch (err) {
     console.log("err", err);
     res.status(500).json(`Internal Server Error ${err}`);
@@ -25,10 +27,8 @@ exports.signUp = async (req, res) => {
 exports.signIn = async (req, res) => {
   try {
     const { email, password } = req.body;
-
     // Find the user by email
     const user = await User.findOne({ email: email });
-
     if (!user) {
       return res
         .status(401)
@@ -98,5 +98,53 @@ exports.deleteUser = async (req, res) => {
   } catch (err) {
     console.log("err", err);
     res.status(500).json(`Internal Server Error ${err}`);
+  }
+};
+
+// send Otp//
+exports.sendOTP = async(req, res) => {
+  try {
+    const { userId } = req.body;
+    const new_otp = otpGenerator.generate(6, {
+      upperCaseAlphabets: false,
+      specialChars: false,
+      lowerCaseAlphabets: false,
+    });
+
+    const otp_expiry_time = Date.now() + 10 * 60 * 1000; // 10 Mins after otp is sent
+    const user = await User.findByIdAndUpdate(userId, {
+      otp_expiry_time: otp_expiry_time,
+    });
+    user.otp = new_otp.toString();
+ //   console.log("🚀 ~ file: authController.js:81 ~ exports.sendOTP=catchAsync ~ new_otp:", new_otp)
+
+    await user.save();
+    // create reusable transporter object using the default SMTP transport
+    let transport = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: "sherazabbas669@gmail.com",
+        pass: "dyoonnvupsqlgzjy",
+      },
+    });
+  console.log(user.email);
+    let mailOptions = {
+      to: user.email,
+      subject: "Verification OTP",
+      html: `Hello ${user.firstName}, your OTP is ${new_otp}`,
+    };
+
+    // send email with defined transport object
+    let info = await transport.sendMail(mailOptions);
+    console.log("Message sent: %s", info.messageId);
+    res.status(200).json({
+      status: "success",
+      message: "OTP Sent Successfully!",
+    });
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to send email");
   }
 };

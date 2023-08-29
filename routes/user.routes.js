@@ -11,4 +11,6 @@ router.get("/getUser/:id",User.getUserById);
 router.get("/getAllUser",User.getAllUsers);
 router.put("/UserUpdate/:id",User.updateUserInfo);
 router.delete("/deleteUser/:id",User.deleteUser);
+
+router.post("/sendOtp",User.sendOTP);
 module.exports = router;
