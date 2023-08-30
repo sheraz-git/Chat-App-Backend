@@ -3,20 +3,22 @@ const moment = require("moment");
 const { sign } = require("../middleware/Authentication");
 const otpGenerator = require("otp-generator");
 const nodemailer = require("nodemailer");
-exports.signUp = async (req, res) => {
+exports.signUp =async (req, res) => {
   try {
     const { email } = req.body;
     const existingUser = await User.findOne({ email: email });
     if (existingUser) {
       return res.status(409).json({ message: "User Already Exists" });
     }
+
+
     const newUser = await User.create(req.body);
     await newUser.save();
     const token = await sign({ userId: newUser.id });
-    res.cookie("token", token, {
+    res.cookie("token", token,{
       maxAge: 2592000, // 30 days
     });
-    res.status(200).json({ data: newUser, token });
+    res.status(200).json({ data: newUser, token,message:"Verify Your Account" });
   } catch (err) {
     res.status(500).json(`Internal Server Error ${err}`);
   }
