@@ -27,6 +27,10 @@ const User = new mongoose.Schema({
   otp_expiry_time: {
     type: Date,
   },
+  isEmailVerified:{
+   type:Boolean,
+  required:false
+  }
 });
 
 User.pre("save", async function (next) {

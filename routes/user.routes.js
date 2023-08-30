@@ -13,4 +13,6 @@ router.put("/UserUpdate/:id",User.updateUserInfo);
 router.delete("/deleteUser/:id",User.deleteUser);
 
 router.post("/sendOtp",User.sendOTP);
+router.post("/checkOtpVerify",User.checkOtpVerify);
+router.get("/checkOtpExpiry/:id",User.checkOtpExpiry);
 module.exports = router;
