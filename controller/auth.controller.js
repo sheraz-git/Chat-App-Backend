@@ -2,7 +2,7 @@ const User = require("../model/user.model");
 const moment = require("moment");
 const otpGenerator = require("otp-generator");
 const nodemailer = require("nodemailer");
-
+const { success, error, validation } = require("../helper/response");
 // send Otp//
 exports.sendOTP = async (req, res) => {
   try {
@@ -12,13 +12,13 @@ exports.sendOTP = async (req, res) => {
       specialChars: false,
       lowerCaseAlphabets: false,
     });
-const otp_expiry_time = moment().add(1, "minutes");
-const user = await User.findByIdAndUpdate(userId, {
-  otp_expiry_time: otp_expiry_time.toISOString(),
-});
-user.otp = new_otp.toString();
+    const otp_expiry_time = moment().add(1, "minutes");
+    const user = await User.findByIdAndUpdate(userId, {
+      otp_expiry_time: otp_expiry_time.toISOString(),
+    });
+    user.otp = new_otp.toString();
     await user.save();
-// create reusable transporter object using the default SMTP transport
+    // create reusable transporter object using the default SMTP transport
     let transport = nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 587,
@@ -35,13 +35,12 @@ user.otp = new_otp.toString();
     };
     // send email with defined transport object
     let info = await transport.sendMail(mailOptions);
-    res.status(200).json({
-      status: "success",
-      message: "OTP Sent Successfully!",
-    });
-  } catch (error) {
-    console.error(error);
-    throw new Error("Failed to send email");
+    if (info) {
+      return success("OTP Sent Successfully!", { data: user }, "CREATED", res);
+    }
+    return error("otp Already Send", "BAD_REQUEST", res);
+  } catch (err) {
+    error(err.message, "INTERNAL_SERVER_ERROR", res);
   }
 };
 
@@ -50,18 +49,16 @@ exports.checkOtpVerify = async (req, res) => {
     const { otp } = req.body;
     const user = await User.findOne({ otp });
     if (!user) {
-      return res.status(409).json({ message: "Incorrect Otp" });
+      return error("Incorrect Otp", "BAD_REQUEST", res);
     }
     const currentTime = moment();
     const otpExpiryTime = moment(user.otp_expiry_time);
     if (currentTime.isAfter(otpExpiryTime)) {
-      // OTP has expired, delete the user data
-     // await User.findByIdAndDelete(user._id);
-      return res.status(400).json({ message: "OTP has expired"});
+      return error("Incorrect is Expired", "CONFLICT", res);
     }
-    res.status(200).json({ data: user,message:"Otp verified successfully"});
+    return success("Otp verified successfully", { data: user }, "OK", res);
   } catch (err) {
-    res.status(500).json(`Internal Server Error ${err}`);
+    error(err.message, "INTERNAL_SERVER_ERROR", res);
   }
 };
 
@@ -69,11 +66,13 @@ exports.checkOtpExpiry = async (req, res) => {
   try {
     const { userId } = req.params;
     const currentTime = moment();
-    const user = await User.findOne({userId});
-    console.log("🚀 ~ file: user.controller.js:148 ~ exports.checkOtpExpiry= ~ user:", user.otp_expiry_time)
-    res.status(200).json({data:user})
+    const user = await User.findOne({ userId });
+    console.log(
+      "🚀 ~ file: user.controller.js:148 ~ exports.checkOtpExpiry= ~ user:",
+      user.otp_expiry_time
+    );
+    res.status(200).json({ data: user });
   } catch (err) {
     res.status(500).json(`Internal Server Error ${err}`);
   }
 };
-

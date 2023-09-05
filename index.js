@@ -9,6 +9,9 @@ const Port = process.env.PORT;
 const connectToMongo=require("./db/connectDb");
 const userRoutes=require("./routes/user.routes");
 const authRoutes=require("./routes/auth.routes");
+const conversationRoutes=require("./routes/conversation.routes");
+const messageRoutes=require("./routes/message.router");
+//console.clear();
 connectToMongo();
 const corsOptions = {
   origin: "*",
@@ -28,7 +31,7 @@ app.listen(Port, () => {
     console.log(`ChatApp-Backend-Working ${Port}`);
 });
 
-app.use("/api",userRoutes,authRoutes, (req, res,next) => {
+app.use("/api",userRoutes,authRoutes,conversationRoutes,messageRoutes, (req, res,next) => {
   res.status(404).json({
     success: false,
     message: "Page not found",
@@ -38,3 +41,5 @@ app.use("/api",userRoutes,authRoutes, (req, res,next) => {
     },
   });
 });
+
+

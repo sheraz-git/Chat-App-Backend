@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
-const bcrypt=require("bcrypt");
-const User = new mongoose.Schema({
+const bcrypt = require("bcrypt");
+const userSchema = new mongoose.Schema({
   image: {
     type: String,
     required: false,
-      },
+  },
   name: {
     type: String,
     required: true,
@@ -27,13 +27,17 @@ const User = new mongoose.Schema({
   otp_expiry_time: {
     type: Date,
   },
-  isEmailVerified:{
-   type:Boolean,
-  required:false
-  }
+  isEmailVerified: {
+    type: Boolean,
+    required: false,
+  },
 });
 
-User.pre("save", async function (next) {
+userSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
+userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
     return next();
   }
@@ -41,5 +45,5 @@ User.pre("save", async function (next) {
   next();
 });
 
-const user = mongoose.model("User", User);
-module.exports = user;
+const User = mongoose.model("userSchema", userSchema);
+module.exports = User;
