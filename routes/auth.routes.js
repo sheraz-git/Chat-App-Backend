@@ -6,4 +6,7 @@ const router = express.Router();
 router.post("/sendOtp",Auth.sendOTP);
 router.post("/checkOtpVerify",Auth.checkOtpVerify);
 router.get("/checkOtpExpiry/:id",Auth.checkOtpExpiry);
+
+
+router.post("/forUserEmail",Auth.forUserEmail);
 module.exports = router;

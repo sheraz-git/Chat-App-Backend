@@ -7,7 +7,7 @@ exports.signUp = async (req, res) => {
     const { email } = req.body;
     const existingUser = await User.findOne({ email: email });
     if (existingUser) {
-      return error("User Already Exists", "NOT_FOUND", res);
+      return error("Email and Password already exist", "CONFLICT", res);
     }
     const newUser = await User.create(req.body);
     await newUser.save();
@@ -17,7 +17,7 @@ exports.signUp = async (req, res) => {
     });
     success(
       "SignUp Created Successfully",
-      { data: newUser, token },
+      { newUser, token },
       "CREATED",
       res
     );

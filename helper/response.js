@@ -16,7 +16,7 @@ const success = (message, results, statusCode, res) => {
     message: message,
     error: false,
     code: RESPONSE[statusCode],
-    data: results,
+    ...results,
   });
 };
 
